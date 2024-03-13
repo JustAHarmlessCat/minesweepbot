@@ -1,5 +1,6 @@
 import pyautogui
 import time
+import gymnasium as gym
 
 img = pyautogui.screenshot(region=(0, 0, 2560, 1440))
 num1 = 54, 75, 165
@@ -8,6 +9,8 @@ num3 = 175, 44, 44
 num4 = 137, 54, 165
 num5 = 110, 58, 58
 num6 = 86, 156, 184
+num7 = 48, 89, 105
+none = 98, 120, 142
 
 #felder sind 55, 55 pixel groß
 
@@ -19,7 +22,6 @@ def makeBoard():    # 16x30
             row.append(0)
         board.append(row)
     return board
-
 
 def updateBoard(board):
     width, height = img.size
@@ -42,12 +44,15 @@ def updateBoard(board):
                 board[i][j] = 5
             if pixel == num6:
                 board[i][j] = 6
+            if pixel  == num7:
+                board[i][j] = 7
+            if pixel == none:
+                board[i][j] = 9
     return board
 
 #print('\n'.join(map(str, makeBoard(int(rows), int(cols)))))
 
-pyautogui.click(500, 500)	# Clicks on the screen to start the game
+
+pyautogui.click(500, 500)  # Click to start the game
 board = makeBoard()
-time.sleep(1)                   #iwi will das nicht und mann mus das teil zweimal ausführen damit das loppt
-board = updateBoard(board)
-print('\n'.join(map(str, board)))
+time.sleep(1)  # Wait for initial setup
