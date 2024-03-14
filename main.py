@@ -50,9 +50,16 @@ def updateBoard(board):
                 board[i][j] = 9
     return board
 
-#print('\n'.join(map(str, makeBoard(int(rows), int(cols)))))
-
 
 pyautogui.click(500, 500)  # Click to start the game
+#print('\n'.join(map(str, makeBoard(int(rows), int(cols)))))
 board = makeBoard()
-time.sleep(1)  # Wait for initial setup
+
+while True:
+    board = updateBoard(board)
+    time.sleep(1)  # Wait for initial setup
+    if pyautogui.isPressed('q'):
+        print("Stopping...")
+        break
+
+
