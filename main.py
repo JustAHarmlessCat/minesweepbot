@@ -1,6 +1,5 @@
 import pyautogui
 import time
-import gymnasium as gym
 
 img = pyautogui.screenshot(region=(0, 0, 2560, 1440))
 num1 = 54, 75, 165
@@ -11,14 +10,19 @@ num5 = 110, 58, 58
 num6 = 86, 156, 184
 num7 = 48, 89, 105
 none = 98, 120, 142
+field = 112, 128, 144
 
+# mine ist gleich 10
 #felder sind 55, 55 pixel groß
+
+rows = 16
+cols = 30
 
 def makeBoard():    # 16x30
     board = []
-    for i in range(30):
+    for i in range(cols):
         row = []
-        for j in range(16):
+        for j in range(rows):
             row.append(0)
         board.append(row)
     return board
@@ -48,6 +52,7 @@ def updateBoard(board):
                 board[i][j] = 7
             if pixel == none:
                 board[i][j] = 9
+
     return board
 
 
@@ -55,8 +60,72 @@ pyautogui.click(500, 500)  # Click to start the game
 #print('\n'.join(map(str, makeBoard(int(rows), int(cols)))))
 board = makeBoard()
 
+def findMine(board):
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            freeSquares = []
+            for num in range(1, 8):
+                if board[i][j] == num:
+                    if j+1 < len(board[i]) and board[i][j+1] == 0:
+                        freeSquares.append((i, j+1))
+                    if j-1 >= 0 and board[i][j-1] == 0:
+                        freeSquares.append((i, j-1))
+                    if i+1 < len(board) and board[i+1][j] == 0:
+                        freeSquares.append((i+1, j))
+                    if i-1 >= 0 and board[i-1][j] == 0:
+                        freeSquares.append((i-1, j))
+                    if i+1 < len(board) and j+1 < len(board[i]) and board[i+1][j+1] == 0:
+                        freeSquares.append((i+1, j+1))
+                    if i-1 >= 0 and j-1 >= 0 and board[i-1][j-1] == 0:
+                        freeSquares.append((i-1, j-1))
+                    if i+1 < len(board) and j-1 >= 0 and board[i+1][j-1] == 0:
+                        freeSquares.append((i+1, j-1))
+                    if i-1 >= 0 and j+1 < len(board[i]) and board[i-1][j+1] == 0:
+                        freeSquares.append((i-1, j+1))
+                    if len(freeSquares) == num:
+                        for square in freeSquares:
+                            board[square[0]][square[1]] = 10
+                            return board
+                        break
+                    freeSquares.clear()
+
+def clickSafe(board):
+    for i in range(len(board)):
+        for j in range(len(board[i])):              #das noch auf alle 8 felder anwenden
+            if board[i + 1][j] == 1:
+                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j + 1))
+                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j + 1))
+                pyautogui.click(460 + 56 * (i), 257 + 56 * (j + 1))
+                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j))
+                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j - 1))
+                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j - 1))
+                pyautogui.click(460 + 56 * (i), 257 + 56 * (j - 1))
+            if board[i - 1][j] == 1:
+                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j + 1))
+                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j + 1))
+                pyautogui.click(460 + 56 * (i), 257 + 56 * (j + 1))
+                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j))
+                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j - 1))
+                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j - 1))
+                pyautogui.click(460 + 56 * (i), 257 + 56 * (j - 1))
+            if board[i][j + 1] == 1:
+                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j + 1))
+                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j + 1))
+                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j))
+                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j))
+                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j - 1))
+                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j - 1))
+                pyautogui.click(460 + 56 * (i), 257 + 56 * (j - 1))
+            
+                
+    return board
+                
+
+
 while True:
     board = updateBoard(board)
+    board = findMine(board)
+    board = clickSafe(board)
     time.sleep(1)  # Wait for initial setup
     if pyautogui.isPressed('q'):
         print("Stopping...")
