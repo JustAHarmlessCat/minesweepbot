@@ -91,34 +91,23 @@ def findMine(board):
 
 def clickSafe(board):
     for i in range(len(board)):
-        for j in range(len(board[i])):              #das noch auf alle 8 felder anwenden
-            if board[i + 1][j] == 1:
-                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j + 1))
-                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j + 1))
-                pyautogui.click(460 + 56 * (i), 257 + 56 * (j + 1))
-                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j))
-                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j - 1))
-                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j - 1))
-                pyautogui.click(460 + 56 * (i), 257 + 56 * (j - 1))
-            if board[i - 1][j] == 1:
-                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j + 1))
-                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j + 1))
-                pyautogui.click(460 + 56 * (i), 257 + 56 * (j + 1))
-                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j))
-                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j - 1))
-                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j - 1))
-                pyautogui.click(460 + 56 * (i), 257 + 56 * (j - 1))
-            if board[i][j + 1] == 1:
-                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j + 1))
-                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j + 1))
-                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j))
-                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j))
-                pyautogui.click(460 + 56 * (i + 1), 257 + 56 * (j - 1))
-                pyautogui.click(460 + 56 * (i - 1), 257 + 56 * (j - 1))
-                pyautogui.click(460 + 56 * (i), 257 + 56 * (j - 1))
-            
-                
-    return board
+        for j in range(len(board[i])):
+            # Check surrounding fields for a mine
+            surrounding_fields = [(i-1, j-1), (i-1, j), (i-1, j+1),
+                                  (i, j-1),                 (i, j+1),
+                                  (i+1, j-1), (i+1, j), (i+1, j+1)]
+
+            for field in surrounding_fields:
+                x, y = field
+                # Check if coordinates are within the board
+                if 0 <= x < len(board) and 0 <= y < len(board[i]):
+                    # If the field is a mine, continue to the next field
+                    if board[x][y] == 10:
+                        continue
+                    # If the field is not a mine, click it
+                    else:
+                        pyautogui.click(460 + 56 * x, 257 + 56 * y)
+    return board            
                 
 
 
