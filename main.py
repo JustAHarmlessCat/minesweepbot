@@ -1,6 +1,5 @@
 import pyautogui
 import time
-
 img = pyautogui.screenshot(region=(0, 0, 2560, 1440))
 num1 = 54, 75, 165
 num2 = 47, 147, 82
@@ -13,7 +12,10 @@ none = 98, 120, 142
 field = 112, 128, 144
 
 # mine ist gleich 10
-#felder sind 55, 55 pixel groß
+#felder sind 55, 55 pixel groß bei 1440p
+#felder sind 44, 44 pixel groß bei 1080p
+#startpunkt bei 1440p ist 460, 257
+#startpunkt bei 1080p ist 335, 180
 
 rows = 16
 cols = 30
@@ -31,8 +33,8 @@ def updateBoard(board):
     width, height = img.size
     for i in range(len(board)):
         for j in range(len(board[i])):
-            x = 460 + 56 * i
-            y = 257 + 56 * j
+            x = startpointx + fieldsize * i
+            y = startpointy + fieldsize * j
             pixel = img.getpixel((x, y))
             if pixel != (255, 255, 255):
                 board[i][j] = 0
@@ -105,11 +107,22 @@ def clickSafe(board):
                         if required_mines == 0:
                             for field in surrounding_fields:
                                 if board[field[0]][field[1]] == 0:
-                                    pyautogui.click(460 + 56 * field[0] + 28, 257 + 56 * field[1] + 28)
+                                    pyautogui.click(startpointx + fieldsize * field[0] + 28, startpointy + fieldsize * field[1] + 28)
 
     return board            
                 
 
+input("resolution 1440p or 1080p?")
+if input == "1440p" or input == "1440":
+    fieldsize = 56
+    startpointx = 460
+    startpointy = 257
+else: 
+    fieldsize = 45
+    startpointx = 335
+    startpointy = 180
+
+time.sleep(5)
 
 while True:
     board = updateBoard(board)
