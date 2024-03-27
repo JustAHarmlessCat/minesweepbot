@@ -1,5 +1,6 @@
 import pyautogui
 import time
+
 img = pyautogui.screenshot(region=(0, 0, 2560, 1440))
 num1 = 54, 75, 165
 num2 = 47, 147, 82
@@ -11,25 +12,22 @@ num7 = 48, 89, 105
 none = 98, 120, 142
 field = 112, 128, 144
 
-# mine ist gleich 10
-#felder sind 55, 55 pixel groß bei 1440p
-#felder sind 44, 44 pixel groß bei 1080p
-#startpunkt bei 1440p ist 460, 257
-#startpunkt bei 1080p ist 335, 180
-
 rows = 16
 cols = 30
 
-def makeBoard():    # 16x30
+def makeBoard():    # 16x30              #das board wird gemacht
+    print("Making board...")
     board = []
     for i in range(cols):
         row = []
         for j in range(rows):
             row.append(0)
         board.append(row)
+    print("Board made.")
     return board
 
-def updateBoard(board):
+def updateBoard(board):              #wird halt geupdated
+    print("Updating board...")
     width, height = img.size
     for i in range(len(board)):
         for j in range(len(board[i])):
@@ -54,15 +52,13 @@ def updateBoard(board):
                 board[i][j] = 7
             if pixel == none:
                 board[i][j] = 9
-
+    print("Board updated.")
     return board
 
-
-pyautogui.click(500, 500)  # Click to start the game
-#print('\n'.join(map(str, makeBoard(int(rows), int(cols)))))
 board = makeBoard()
 
 def findMine(board):
+    print("Finding mines...")
     for i in range(len(board)):
         for j in range(len(board[i])):
             freeSquares = []
@@ -87,14 +83,16 @@ def findMine(board):
                     if len(freeSquares) == num:
                         for square in freeSquares:
                             board[square[0]][square[1]] = 10
-                            return board
+                        return board
                         break
                     freeSquares.clear()
+    print("Mines found.")
+    return board
 
 def clickSafe(board):
+    print("Clicking safe squares...")
     for i in range(len(board)):
         for j in range(len(board[i])):
-            # Check surrounding fields for a mine
             surrounding_fields = [(i-1, j-1), (i-1, j), (i-1, j+1),
                                   (i, j-1),                 (i, j+1),
                                   (i+1, j-1), (i+1, j), (i+1, j+1)]
@@ -102,18 +100,23 @@ def clickSafe(board):
             if board[i][j] != 0 and board[i][j] != 9 and board[i][j] != 10:
                 required_mines = board[i][j]
                 for field in surrounding_fields:
-                    if board[field[0]][field[1]] == 10:
-                        required_mines -= 1
+                    fieldx = field[0]
+                    fieldy = field[1]
+                    if fieldx >= 0 and fieldx < len(board) and fieldy >= 0 and fieldy < len(board[i]):
+                        if board[fieldx][fieldy] == 10:
+                            required_mines -= 1
                         if required_mines == 0:
-                            for field in surrounding_fields:
-                                if board[field[0]][field[1]] == 0:
-                                    pyautogui.click(startpointx + fieldsize * field[0] + 28, startpointy + fieldsize * field[1] + 28)
-
+                            for fields in surrounding_fields:
+                                fieldx = fields[0]
+                                fieldy = fields[1]
+                                if fieldx >= 0 and fieldx < len(board) and fieldy >= 0 and fieldy < len(board[i]):
+                                    if board[fieldx][fieldy] == 0:
+                                        pyautogui.click(startpointx + fieldsize * fieldx + 28, startpointy + fieldsize * fieldy)
+    print("Safe squares clicked.")
     return board            
-                
 
-input("resolution 1440p or 1080p?")
-if input == "1440p" or input == "1440":
+resolution = input("resolution 1440p or 1080p?")
+if resolution == "1440p" or resolution == "1440":
     fieldsize = 56
     startpointx = 460
     startpointy = 257
@@ -121,16 +124,13 @@ else:
     fieldsize = 45
     startpointx = 335
     startpointy = 180
-
+print("Starting...")
 time.sleep(5)
-
+pyautogui.click(500, 500)
 while True:
+    print("Updating, finding mines, and clicking safe squares...")
     board = updateBoard(board)
     board = findMine(board)
     board = clickSafe(board)
+    print("Update, find, and click complete.")
     time.sleep(1)  # Wait for initial setup
-    if pyautogui.isPressed('q'):
-        print("Stopping...")
-        break
-
-
