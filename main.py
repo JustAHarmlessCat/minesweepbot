@@ -97,16 +97,16 @@ def clickSafe(board):
                                   (i, j-1),                 (i, j+1),
                                   (i+1, j-1), (i+1, j), (i+1, j+1)]
 
-            for field in surrounding_fields:
-                x, y = field
-                # Check if coordinates are within the board
-                if 0 <= x < len(board) and 0 <= y < len(board[i]):
-                    # If the field is a mine, continue to the next field
-                    if board[x][y] == 10:
-                        continue
-                    # If the field is not a mine, click it
-                    else:
-                        pyautogui.click(460 + 56 * x, 257 + 56 * y)
+            if board[i][j] != 0 and board[i][j] != 9 and board[i][j] != 10:
+                required_mines = board[i][j]
+                for field in surrounding_fields:
+                    if board[field[0]][field[1]] == 10:
+                        required_mines -= 1
+                        if required_mines == 0:
+                            for field in surrounding_fields:
+                                if board[field[0]][field[1]] == 0:
+                                    pyautogui.click(460 + 56 * field[0] + 28, 257 + 56 * field[1] + 28)
+
     return board            
                 
 
