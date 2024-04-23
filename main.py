@@ -76,8 +76,8 @@ def findSafe(board):
                                 potential_mines.append((nx, ny))
                             else:
                                 safe_squares.append((nx, ny))
-                if mine_count == board[i][j] and not potential_mines:
-                    for square in safe_squares:
+                if mine_count == board[i][j]:  # If the number of mines equals the number on the square
+                    for square in potential_mines:  # Mark the potential mines as safe
                         board[square[0]][square[1]] = 15
     return board
             
@@ -123,7 +123,7 @@ resolution = monitor.width, monitor.height
 if resolution == (2560, 1440):
     fieldsize = 57
     startpointx = 444
-    startpointy = 255
+    startpointy = 237
 else: 
     fieldsize = 45
     startpointx = 335
