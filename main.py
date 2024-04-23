@@ -1,4 +1,5 @@
 import pyautogui
+import keyboard
 import time
 
 img = pyautogui.screenshot(region=(0, 0, 2560, 1440))
@@ -20,15 +21,13 @@ cols = 30
 
 def makeBoard():    # 16x30
     board = []
-    for i in range(cols):
-        row = []
-        for j in range(rows):
-            row.append(0)
+    for _ in range(cols):
+        row = [0] * rows
         board.append(row)
     return board
 
 def updateBoard(board):
-    width, height = img.size
+    _, _ = img.size
     for i in range(len(board)):
         for j in range(len(board[i])):
             x = 460 + 56 * i
@@ -57,8 +56,10 @@ def updateBoard(board):
 
 
 pyautogui.click(500, 500)  # Click to start the game
-#print('\n'.join(map(str, makeBoard(int(rows), int(cols)))))
-board = makeBoard()
+def findSafe(board):
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+
 
 def findMine(board):
     for i in range(len(board)):
@@ -88,35 +89,25 @@ def findMine(board):
                             return board
                         break
                     freeSquares.clear()
+    return board
 
 def clickSafe(board):
     for i in range(len(board)):
         for j in range(len(board[i])):
-            # Check surrounding fields for a mine
-            surrounding_fields = [(i-1, j-1), (i-1, j), (i-1, j+1),
-                                  (i, j-1),                 (i, j+1),
-                                  (i+1, j-1), (i+1, j), (i+1, j+1)]
-
-            for field in surrounding_fields:
-                x, y = field
-                # Check if coordinates are within the board
-                if 0 <= x < len(board) and 0 <= y < len(board[i]):
-                    # If the field is a mine, continue to the next field
-                    if board[x][y] == 10:
-                        continue
-                    # If the field is not a mine, click it
-                    else:
-                        pyautogui.click(460 + 56 * x, 257 + 56 * y)
-    return board            
+            # If the field is not a mine, click it
+            if board[i][j] != 10:
+                pyautogui.click(460 + 56 * i, 257 + 56 * j)
+    return board           
                 
-
+board = makeBoard()
 
 while True:
     board = updateBoard(board)
     board = findMine(board)
+    board = findSafe(board)
     board = clickSafe(board)
     time.sleep(1)  # Wait for initial setup
-    if pyautogui.isPressed('q'):
+    if keyboard.is_pressed('q'):
         print("Stopping...")
         break
 
