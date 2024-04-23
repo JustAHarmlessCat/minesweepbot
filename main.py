@@ -29,86 +29,80 @@ def makeBoard():    # 16x30              #das board wird gemacht
 
 def updateBoard(board):              #wird halt geupdated
     print("Updating board...")
-    width, height = img.size
+    img = pyautogui.screenshot(region=(0, 0, 2560, 1440))  # Take a new screenshot each time the function is called
+    width, height = img.size  # Get the dimensions of the screenshot
     for i in range(len(board)):
         for j in range(len(board[i])):
             x = startpointx + fieldsize * i
             y = startpointy + fieldsize * j
-            pixel = img.getpixel((x, y))
-            if pixel != (255, 255, 255):
-                board[i][j] = 0
-            if pixel == num1:
-                board[i][j] = 1
-            if pixel == num2:
-                board[i][j] = 2
-            if pixel == num3:
-                board[i][j] = 3
-            if pixel == num4:
-                board[i][j] = 4
-            if pixel == num5:
-                board[i][j] = 5
-            if pixel == num6:
-                board[i][j] = 6
-            if pixel  == num7:
-                board[i][j] = 7
-            if pixel == field:
-                board[i][j] = 9
-            if pixel == none:
-                board[i][j] = 20
+            # Check if the coordinates are within the dimensions of the screenshot
+            if x < width and y < height:
+                pixel = img.getpixel((x, y))
+                # Use a dictionary to map colors to cell values
+                color_to_value = {
+                    num1: 1,
+                    num2: 2,
+                    num3: 3,
+                    num4: 4,
+                    num5: 5,
+                    num6: 6,
+                    num7: 7,
+                    field: 9,
+                    none: 20,
+                }
+                # Default to 0 if the pixel color is not recognized
+                board[i][j] = color_to_value.get(pixel, 0)
     print("Board updated.")
     return board
 
 board = makeBoard()
 
 def findSafe(board):
-    print("Finding safe squares...")
     for i in range(len(board)):
         for j in range(len(board[i])):
             if 1 <= board[i][j] <= 7:
                 mine_count = 0
                 safe_squares = []
+                potential_mines = []
                 for dx in [-1, 0, 1]:
                     for dy in [-1, 0, 1]:
+                        if dx == 0 and dy == 0:  # Skip the current cell
+                            continue
                         nx, ny = i + dx, j + dy
-                        if 0 <= nx < len(board) and 0 <= ny < len(board[i]) and board[nx][ny] == 10:
-                            mine_count += 1
-                        if 0 <= nx < len(board) and 0 <= ny < len(board[i]) and board[nx][ny] == 9:
-                            safe_squares.append((nx, ny))
-                if mine_count == board[i][j]:
+                        if 0 <= nx < len(board) and 0 <= ny < len(board[i]):
+                            if board[nx][ny] == 10:
+                                mine_count += 1
+                            elif board[nx][ny] == 9:
+                                potential_mines.append((nx, ny))
+                            else:
+                                safe_squares.append((nx, ny))
+                if mine_count == board[i][j] and not potential_mines:
                     for square in safe_squares:
                         board[square[0]][square[1]] = 15
     return board
             
-
 def findMine(board):
     print("Finding mines...")
     for i in range(len(board)):
         for j in range(len(board[i])):
-            freeSquares = []
-            for num in range(1, 8):
-                if board[i][j] == num:
-                    if j+1 < len(board[i]) and board[i][j+1] == 0:
-                        freeSquares.append((i, j+1))
-                    if j-1 >= 0 and board[i][j-1] == 0:
-                        freeSquares.append((i, j-1))
-                    if i+1 < len(board) and board[i+1][j] == 0:
-                        freeSquares.append((i+1, j))
-                    if i-1 >= 0 and board[i-1][j] == 0:
-                        freeSquares.append((i-1, j))
-                    if i+1 < len(board) and j+1 < len(board[i]) and board[i+1][j+1] == 0:
-                        freeSquares.append((i+1, j+1))
-                    if i-1 >= 0 and j-1 >= 0 and board[i-1][j-1] == 0:
-                        freeSquares.append((i-1, j-1))
-                    if i+1 < len(board) and j-1 >= 0 and board[i+1][j-1] == 0:
-                        freeSquares.append((i+1, j-1))
-                    if i-1 >= 0 and j+1 < len(board[i]) and board[i-1][j+1] == 0:
-                        freeSquares.append((i-1, j+1))
-                    if len(freeSquares) == num:
-                        for square in freeSquares:
-                            board[square[0]][square[1]] = 10
-                        return board
-                        break
-                    freeSquares.clear()
+            if 1 <= board[i][j] <= 7:
+                unclicked_count = 0
+                mine_count = 0
+                unclicked_positions = []
+                for dx in [-1, 0, 1]:
+                    for dy in [-1, 0, 1]:
+                        if dx == 0 and dy == 0:  # Skip the current cell
+                            continue
+                        nx, ny = i + dx, j + dy
+                        if 0 <= nx < len(board) and 0 <= ny < len(board[0]):  # Ensure ny is within bounds
+                            if board[nx][ny] == 9:
+                                unclicked_count += 1
+                                unclicked_positions.append((nx, ny))
+                            elif board[nx][ny] == 10:  # Count the number of revealed mines
+                                mine_count += 1
+                if unclicked_count == board[i][j] - mine_count:  # Subtract the number of revealed mines from the number in the cell
+                    for position in unclicked_positions:
+                        board[position[0]][position[1]] = 10
     print("Mines found.")
     return board
 
@@ -116,7 +110,7 @@ def clickSafe(board):
     print("Clicking safe squares...")
     for i in range(len(board)):
         for j in range(len(board[i])):
-            # If the field is not a mine, click it
+            # If the field is safe, click it
             if board[i][j] == 15:
                 pyautogui.click(startpointx + fieldsize * i, startpointy + fieldsize * j)
     return board
@@ -127,9 +121,9 @@ monitor = get_monitors()[0]
 resolution = monitor.width, monitor.height
 
 if resolution == (2560, 1440):
-    fieldsize = 56
-    startpointx = 460
-    startpointy = 257
+    fieldsize = 57
+    startpointx = 444
+    startpointy = 255
 else: 
     fieldsize = 45
     startpointx = 335
@@ -138,19 +132,16 @@ else:
 print("Starting...")
 time.sleep(2)
 pyautogui.click(500, 500)
-async def gameloop():
-    print("Updating, finding mines, and clicking safe squares...")
-    board = await updateBoard(board)
-    board = await findMine(board)
-    board = await findSafe(board)
-    board = await clickSafe(board)
-    print("Update, find, and click complete.")
-    print(board)
-    await time.sleep(1)  # Wait for initial setup
     
 while True:
-    gameloop()
-    break
+    print("Updating, finding mines, and clicking safe squares...")
+    board = updateBoard(board)
+    time.sleep(2)
+    board = findMine(board)
+    board = findSafe(board)
+    board = clickSafe(board)
+    print("Update, find, and click complete.")
+    print(board)
     if keyboard.is_pressed('q'):
         print("Stopping...")
         break
