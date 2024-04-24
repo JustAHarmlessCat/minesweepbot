@@ -4,7 +4,9 @@ import time
 
 from screeninfo import get_monitors
 
-img = pyautogui.screenshot(region=(0, 0, 2560, 1440))
+monitor = get_monitors()[0]
+
+img = pyautogui.screenshot(region=(0, 0, monitor.width, monitor.height))
 num1 = 54, 75, 165
 num2 = 47, 147, 82
 num3 = 175, 44, 44
@@ -29,7 +31,7 @@ def makeBoard():    # 16x30              #das board wird gemacht
 
 def updateBoard(board):              #wird halt geupdated
     print("Updating board...")
-    img = pyautogui.screenshot(region=(0, 0, 2560, 1440))  # Take a new screenshot each time the function is called
+    img = pyautogui.screenshot(region=(0, 0, monitor.height, monitor.width))  # Take a new screenshot each time the function is called
     width, height = img.size  # Get the dimensions of the screenshot
     for i in range(len(board)):
         for j in range(len(board[i])):
@@ -117,7 +119,6 @@ def clickSafe(board):
 
 board = makeBoard()
 
-monitor = get_monitors()[0]
 resolution = monitor.width, monitor.height
 
 if resolution == (2560, 1440):
@@ -125,18 +126,18 @@ if resolution == (2560, 1440):
     startpointx = 444
     startpointy = 237
 else: 
-    fieldsize = 45
-    startpointx = 335
-    startpointy = 180
+    fieldsize = 42
+    startpointx = 333
+    startpointy = 177
 
 print("Starting...")
-time.sleep(2)
 pyautogui.click(500, 500)
-    
+board = updateBoard(board)
+time.sleep(2)
+
 while True:
     print("Updating, finding mines, and clicking safe squares...")
     board = updateBoard(board)
-    time.sleep(2)
     board = findMine(board)
     board = findSafe(board)
     board = clickSafe(board)
