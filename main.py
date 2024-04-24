@@ -1,3 +1,10 @@
+# Author: JustAHarmlessCat
+
+# Contributors:
+# - JustAHarmlessCat
+# - 1010Jan1010
+#
+
 import pyautogui
 import keyboard
 import time
