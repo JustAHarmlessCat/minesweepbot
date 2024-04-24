@@ -4,6 +4,7 @@ import time
 import random
 
 from screeninfo import get_monitors
+pyautogui.PAUSE = 0.001
 
 
 flags = []
@@ -12,6 +13,8 @@ monitor = get_monitors()[0]
 def boardSize():
     img = pyautogui.screenshot(region=(0, 0, monitor.width, monitor.height))
     pixel = img.getpixel((470, 240))
+    if img.getpixel((1200, 300)) == (0, 0, 0):
+        return 9
     if pixel == (112, 128, 144):
         return 30
     else:
@@ -31,6 +34,8 @@ colors = {
                               #20 ist nix also das graue
 cols = boardSize()
 rows = 16
+if cols == 9:
+    rows = 9
 
 def makeBoard():    # 30x16              #das board wird gemacht
     print("Making board...")
@@ -151,14 +156,14 @@ def clickSafe(board):
                     x, y = startpointx + fieldsize * marked_tile[0], startpointy + fieldsize * marked_tile[1]
                     # If the field is safe, click it
                     pyautogui.click(x, y)
-            else:
-                # Choose a random empty cell
-                empty_cells = [(i, j) for i, row in enumerate(board) for j, cell in enumerate(row) if cell == 9]
-                random_empty_cell = random.choice(empty_cells) if empty_cells else None
-                if random_empty_cell:
-                    x, y = startpointx + fieldsize * random_empty_cell[0], startpointy + fieldsize * random_empty_cell[1]
-                    # If the field is safe, click it
-                    pyautogui.click(x, y)
+                else:
+                    # Choose a random empty cell
+                    empty_cells = [(i, j) for i, row in enumerate(board) for j, cell in enumerate(row) if cell == 9]
+                    random_empty_cell = random.choice(empty_cells) if empty_cells else None
+                    if random_empty_cell:
+                        x, y = startpointx + fieldsize * random_empty_cell[0], startpointy + fieldsize * random_empty_cell[1]
+                        # If the field is safe, click it
+                        pyautogui.click(x, y)
 
     for i, j in safe_positions:
         x, y = startpointx + fieldsize * i, startpointy + fieldsize * j
@@ -176,27 +181,29 @@ if resolution == (2560, 1440):
     if cols == 30:
         startpointx = 444
         startpointy = 237
-    else:
+    elif cols == 16:
         startpointx = 840
         startpointy = 240
+    else:
+        startpointx = 1031
+        startpointy = 438
 else: 
     fieldsize = 42
     startpointx = 333
     startpointy = 177
 
 print("Starting...")
-pyautogui.click(1000, 1000)
+pyautogui.click(1282, 665)
 board = updateBoard(board)
 while True:
     if keyboard.is_pressed('q'):
-        print(board)
         print("Stopping...")
         break
     if keyboard.is_pressed('r') or board == 0:
         print("Restarting...")
         pyautogui.keyDown('ctrl')
         pyautogui.keyUp('ctrl')
-        pyautogui.click(1000, 1000)
+        pyautogui.click(1282, 665)
         board = makeBoard()
         flags = []
     if board != 0:
