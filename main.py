@@ -1,61 +1,65 @@
 import pyautogui
 import keyboard
 import time
+import random
 
 from screeninfo import get_monitors
 
+
+flags = []
 monitor = get_monitors()[0]
 
-img = pyautogui.screenshot(region=(0, 0, monitor.width, monitor.height))
-num1 = 54, 75, 165
-num2 = 47, 147, 82
-num3 = 175, 44, 44
-num4 = 137, 54, 165
-num5 = 110, 58, 58
-num6 = 86, 156, 184
-num7 = 48, 89, 105
-none = 98, 120, 142
-field = 112, 128, 144
-                              #20 ist nix also das graue
-rows = 16
-cols = 30
+def boardSize():
+    img = pyautogui.screenshot(region=(0, 0, monitor.width, monitor.height))
+    pixel = img.getpixel((470, 240))
+    if pixel == (112, 128, 144):
+        return 30
+    else:
+        return 16
 
-def makeBoard():    # 16x30              #das board wird gemacht
+colors = {
+    (54, 75, 165): 1,
+    (47, 147, 82): 2,
+    (175, 44, 44): 3,
+    (137, 54, 165): 4,
+    (110, 58, 58): 5,
+    (86, 156, 184): 6, 
+    (48, 89, 105): 7,
+    (98, 120, 142): 20, # 20 is nothing, so the grey
+    (112, 128, 144): 9, # 9 is unclicked
+}
+                              #20 ist nix also das graue
+cols = boardSize()
+rows = 16
+
+def makeBoard():    # 30x16              #das board wird gemacht
     print("Making board...")
     board = []
     for _ in range(cols):
-        row = [0] * rows
-        board.append(row)
+        col = [0] * rows
+        board.append(col)
     print("Board made.")
     return board
 
-def updateBoard(board):              #wird halt geupdated
-    print("Updating board...")
-    img = pyautogui.screenshot(region=(0, 0, monitor.height, monitor.width))  # Take a new screenshot each time the function is called
-    width, height = img.size  # Get the dimensions of the screenshot
+def updateBoard(board):
+    img = pyautogui.screenshot(region=(0, 0, monitor.width, monitor.height))  
     for i in range(len(board)):
         for j in range(len(board[i])):
-            x = startpointx + fieldsize * i
-            y = startpointy + fieldsize * j
-            # Check if the coordinates are within the dimensions of the screenshot
-            if x < width and y < height:
-                pixel = img.getpixel((x, y))
-                # Use a dictionary to map colors to cell values
-                color_to_value = {
-                    num1: 1,
-                    num2: 2,
-                    num3: 3,
-                    num4: 4,
-                    num5: 5,
-                    num6: 6,
-                    num7: 7,
-                    field: 9,
-                    none: 20,
-                }
-                # Default to 0 if the pixel color is not recognized
-                board[i][j] = color_to_value.get(pixel, 0)
-    print("Board updated.")
+            x, y = startpointx + fieldsize * i, startpointy + fieldsize * j
+            # print(str(x) + " " + str(y))
+            # drawRectangle(x, y, 2, 2)
+            
+            pixel = img.getpixel((x, y))
+          
+            wert = colors.get(pixel)
+            if wert is not None:
+                board[i][j] = wert
+            else:
+                board = 0
+                return board
     return board
+            
+            
 
 board = makeBoard()
 
@@ -84,7 +88,6 @@ def findSafe(board):
     return board
             
 def findMine(board):
-    print("Finding mines...")
     for i in range(len(board)):
         for j in range(len(board[i])):
             if 1 <= board[i][j] <= 7:
@@ -105,16 +108,63 @@ def findMine(board):
                 if unclicked_count == board[i][j] - mine_count:  # Subtract the number of revealed mines from the number in the cell
                     for position in unclicked_positions:
                         board[position[0]][position[1]] = 10
-    print("Mines found.")
     return board
 
+
+
 def clickSafe(board):
-    print("Clicking safe squares...")
+    clicks = 0
+    safe_positions = []
     for i in range(len(board)):
         for j in range(len(board[i])):
-            # If the field is safe, click it
             if board[i][j] == 15:
-                pyautogui.click(startpointx + fieldsize * i, startpointy + fieldsize * j)
+                clicks += 1
+                safe_positions.append((i, j))
+
+    if clicks == 0:
+        # Check if there are any safeclicks on the board
+        if not any(15 in row for row in board):
+            # Find the nearest number cell
+            nearest_number_cell = None
+            for i, row in enumerate(board):
+                for j, cell in enumerate(row):
+                    if cell not in {9, 10}:  # Assuming 9 represents an empty cell and 10 represents a mine
+                        nearest_number_cell = (i, j)
+                        break
+                if nearest_number_cell:
+                    break
+
+            if nearest_number_cell:
+                # Mark a tile that is distant 1 from the nearest number cell
+                marked_tile = None
+                i, j = nearest_number_cell
+                for dx in [-1, 0, 1]:
+                    for dy in [-1, 0, 1]:
+                        nx, ny = i + dx, j + dy
+                        if 0 <= nx < len(board) and 0 <= ny < len(board[i]) and board[nx][ny] == 9:
+                            marked_tile = (nx, ny)
+                            break
+                    if marked_tile:
+                        break
+
+                if marked_tile:
+                    x, y = startpointx + fieldsize * marked_tile[0], startpointy + fieldsize * marked_tile[1]
+                    # If the field is safe, click it
+                    pyautogui.click(x, y)
+            else:
+                # Choose a random empty cell
+                empty_cells = [(i, j) for i, row in enumerate(board) for j, cell in enumerate(row) if cell == 9]
+                random_empty_cell = random.choice(empty_cells) if empty_cells else None
+                if random_empty_cell:
+                    x, y = startpointx + fieldsize * random_empty_cell[0], startpointy + fieldsize * random_empty_cell[1]
+                    # If the field is safe, click it
+                    pyautogui.click(x, y)
+
+    for i, j in safe_positions:
+        x, y = startpointx + fieldsize * i, startpointy + fieldsize * j
+        # If the field is safe, click it
+        pyautogui.click(x, y)
+
     return board
 
 board = makeBoard()
@@ -122,27 +172,36 @@ board = makeBoard()
 resolution = monitor.width, monitor.height
 
 if resolution == (2560, 1440):
-    fieldsize = 57
-    startpointx = 444
-    startpointy = 237
+    fieldsize = 56
+    if cols == 30:
+        startpointx = 444
+        startpointy = 237
+    else:
+        startpointx = 840
+        startpointy = 240
 else: 
     fieldsize = 42
     startpointx = 333
     startpointy = 177
 
 print("Starting...")
-pyautogui.click(500, 500)
+pyautogui.click(1000, 1000)
 board = updateBoard(board)
-time.sleep(2)
-
 while True:
-    print("Updating, finding mines, and clicking safe squares...")
-    board = updateBoard(board)
-    board = findMine(board)
-    board = findSafe(board)
-    board = clickSafe(board)
-    print("Update, find, and click complete.")
-    print(board)
     if keyboard.is_pressed('q'):
+        print(board)
         print("Stopping...")
         break
+    if keyboard.is_pressed('r') or board == 0:
+        print("Restarting...")
+        pyautogui.keyDown('ctrl')
+        pyautogui.keyUp('ctrl')
+        pyautogui.click(1000, 1000)
+        board = makeBoard()
+        flags = []
+    if board != 0:
+        board = updateBoard(board)
+    if board != 0:
+        board = findMine(board)
+        board = findSafe(board)
+        board = clickSafe(board)
